@@ -1,0 +1,274 @@
+You are an expert full-stack engineer.
+Build a complete production-ready web app called Field Studies Trip Manager — a tool for managing Field Studies overnight trips.
+Use Next.js 16 (App Router), TypeScript, Tailwind CSS, and integrate with Airtable and the OpenAI API.
+
+🏗️ Purpose
+
+Field Studies is a student-led outdoor organization at Cal Poly SLO that runs hiking, backpacking, and climbing trips.
+Trip leads need a secure internal dashboard where they can:
+
+Log in (simple shared password for now)
+
+View upcoming trips (from Airtable)
+
+Select their trip
+
+Manage rosters:
+
+Randomize signups between drivers and non-drivers
+
+Add someone from the waitlist
+
+Drop someone from the roster
+
+(Bonus) Chat with an AI assistant that can perform the same actions by command (e.g., “randomize Yosemite roster”).
+
+⚙️ Tech Stack
+
+Framework: Next.js 16 (App Router)
+
+Language: TypeScript
+
+Styling: Tailwind CSS
+
+Database: Airtable API (REST)
+
+AI: OpenAI API (Assistant mode)
+
+Hosting ready: Works on Vercel/Replit (port 3000)
+
+Auth: One shared password for now (fieldstudies2025), with localStorage session persistence
+
+Environment variables:
+
+AIRTABLE_API_KEY
+
+AIRTABLE_BASE_ID
+
+AIRTABLE_TRIPS_TABLE
+
+AIRTABLE_SIGNUPS_TABLE
+
+OPENAI_API_KEY
+
+📁 Folder structure
+app/
+  layout.tsx
+  page.tsx                      // password gate + dashboard logic
+  trip/
+    [tripId]/
+      page.tsx                  // trip management page
+  api/
+    airtable/
+      trips/route.ts            // GET trips from Airtable
+      randomize/route.ts        // POST randomize roster
+      addFromWaitlist/route.ts  // POST move person from waitlist
+      dropParticipant/route.ts  // POST remove person
+    ai/
+      chat/route.ts             // POST chat message to OpenAI
+components/
+  Dashboard.tsx                 // list of trips
+  TripActions.tsx               // action buttons for trip page
+  ChatBox.tsx                   // AI assistant chat interface
+lib/
+  airtable.ts                   // reusable Airtable functions
+  ai.ts                         // reusable OpenAI functions
+public/
+  background.jpg
+styles/
+  globals.css
+
+🔐 Login Page (app/page.tsx)
+
+Client component.
+
+Displays password input centered on screen.
+
+Correct password (fieldstudies2025) unlocks access to the Dashboard.
+
+Store login state in localStorage so reloads remain logged in.
+
+If logged in → show Dashboard.
+
+Tailwind UI: gradient background, white frosted card, green CTA button.
+
+🧭 Dashboard (components/Dashboard.tsx)
+
+Client component that fetches trips from /api/airtable/trips.
+
+Displays trips in responsive cards with:
+
+Trip name
+
+Dates
+
+Status (Open / Waitlist)
+
+“Manage Trip” button → /trip/[tripId]
+
+Uses useRouter() for navigation.
+
+Loading and error states.
+
+🧩 Trip Details Page (app/trip/[tripId]/page.tsx)
+
+Client component.
+
+Fetches that trip’s signup data from Airtable (Trip Signups table).
+
+Displays:
+
+Trip name + date
+
+Roster list
+
+Waitlist list
+
+Driver count
+
+Buttons:
+
+“Randomize Roster” → POST to /api/airtable/randomize
+
+“Add From Waitlist” → POST to /api/airtable/addFromWaitlist
+
+“Drop Participant” → POST to /api/airtable/dropParticipant
+
+Includes a <ChatBox /> component (OpenAI assistant).
+
+Button actions update Airtable via API routes and revalidate UI.
+
+📡 API Endpoints
+
+Each endpoint uses the Airtable REST API with fetch.
+
+/api/airtable/trips/route.ts (GET)
+
+Fetch all trips from AIRTABLE_TRIPS_TABLE.
+Return id, Trip Name, Start Date, End Date, Status.
+
+/api/airtable/randomize/route.ts (POST)
+
+Input: { tripId: string }
+
+Fetch signups for that trip.
+
+Randomly select the correct number of drivers and non-drivers.
+
+Update Airtable roster fields.
+
+Return { success: true, randomizedRoster: [...] }.
+
+/api/airtable/addFromWaitlist/route.ts (POST)
+
+Input: { tripId: string }
+
+Move the next person from waitlist → roster in Airtable.
+
+/api/airtable/dropParticipant/route.ts (POST)
+
+Input: { tripId: string, participantName: string }
+
+Remove participant from Airtable roster.
+
+/api/ai/chat/route.ts (POST)
+
+Input: { tripId, message }
+
+Calls OpenAI with context:
+
+You are a trip management assistant for Field Studies.
+You can randomize rosters, add waitlist participants, or drop people.
+
+
+Parses natural language commands to trigger Airtable API endpoints.
+
+Returns an AI-generated message summarizing the result.
+
+🧰 Utility Files
+lib/airtable.ts
+
+Reusable functions:
+
+fetchTrips()
+
+fetchTripSignups(tripId)
+
+updateRoster(tripId, newRoster)
+
+moveFromWaitlist(tripId)
+
+dropParticipant(tripId, name)
+
+lib/ai.ts
+
+Reusable OpenAI call helper using fetch to POST to /api/ai/chat.
+
+💬 ChatBox (components/ChatBox.tsx)
+
+Client component.
+
+Fixed panel on trip page bottom.
+
+Input field + “Send” button.
+
+Sends chat to /api/ai/chat → shows conversation history.
+
+Tailwind styles: rounded panel, green accent.
+
+🚀 Deployment readiness
+
+Fully typed (TypeScript strict mode).
+
+.env.example with required keys.
+
+Use environment variables for Airtable + OpenAI keys.
+
+Works locally (npm run dev) and deploys cleanly to Replit/Vercel.
+
+No hardcoded API keys.
+
+✅ Acceptance Criteria
+
+Visit / → login page → enter password → see dashboard.
+
+Dashboard loads live trips from Airtable.
+
+Clicking “Manage Trip” → /trip/[tripId].
+
+Trip details show real signups.
+
+Randomize/Add/Drop buttons update Airtable via API routes.
+
+Chatbox accepts messages like “Randomize roster” and performs that action using AI + API routes.
+
+UI updates instantly after each action.
+
+💡 Stretch Goals (optional)
+
+Add Clerk or Firebase authentication instead of password.
+
+Add email notifications via Resend or Brevo when rosters change.
+
+Add “Trip History” view for completed trips.
+
+Support multiple branches (Cal Poly, Oregon State).
+
+🪄 Final Notes for Replit
+
+Generate all code for this app, including:
+
+All components, pages, and routes listed above
+
+Tailwind configuration
+
+TypeScript types
+
+Proper environment variable loading
+
+Clean UI (Tailwind classes only)
+
+Use placeholders for AIRTABLE_* and OPENAI_API_KEY, with .env.example generated.
+
+Expected result:
+A fully working Field Studies Trip Manager web app with login, Airtable integration, roster management actions, and an OpenAI-powered assistant that can perform trip management tasks.
