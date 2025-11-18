@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: fsc-trip-manager
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false  # You'll add this in Render dashboard
+      - key: AIRTABLE_API_KEY
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true
