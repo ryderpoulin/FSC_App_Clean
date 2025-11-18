@@ -46,7 +46,7 @@ export async function setupVite(app: Express, server: Server) {
     const url = req.originalUrl;
 
     try {
-      // In development, resolve from current file location
+      // Get __dirname equivalent for ESM
       const __dirname = path.dirname(fileURLToPath(import.meta.url));
       const clientTemplate = path.resolve(
         __dirname,
@@ -72,7 +72,6 @@ export async function setupVite(app: Express, server: Server) {
 
 export function serveStatic(app: Express) {
   // In production, the build process creates dist/public directory
-  // The working directory will be the project root (FSC_App_Clean)
   const distPath = path.resolve(process.cwd(), "dist", "public");
 
   if (!fs.existsSync(distPath)) {
