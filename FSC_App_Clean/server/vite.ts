@@ -5,6 +5,7 @@ import { createServer as createViteServer, createLogger } from "vite";
 import { type Server } from "http";
 import viteConfig from "../vite.config";
 import { nanoid } from "nanoid";
+import { fileURLToPath } from "url";
 
 const viteLogger = createLogger();
 
@@ -45,8 +46,10 @@ export async function setupVite(app: Express, server: Server) {
     const url = req.originalUrl;
 
     try {
+      // In development, resolve from current file location
+      const __dirname = path.dirname(fileURLToPath(import.meta.url));
       const clientTemplate = path.resolve(
-        import.meta.dirname,
+        __dirname,
         "..",
         "client",
         "index.html",
@@ -68,13 +71,21 @@ export async function setupVite(app: Express, server: Server) {
 }
 
 export function serveStatic(app: Express) {
-  const distPath = path.resolve(import.meta.dirname, "public");
+  // In production, the build process creates dist/public directory
+  // The working directory will be the project root (FSC_App_Clean)
+  const distPath = path.resolve(process.cwd(), "dist", "public");
 
   if (!fs.existsSync(distPath)) {
+    log(`ERROR: Build directory not found at: ${distPath}`, "static");
+    log(`Current working directory: ${process.cwd()}`, "static");
+    log(`Checking if dist exists: ${fs.existsSync(path.resolve(process.cwd(), "dist"))}`, "static");
+    
     throw new Error(
-      `Could not find the build directory: ${distPath}, make sure to build the client first`,
+      `Could not find the build directory: ${distPath}. Make sure to build the client first with 'npm run build'`,
     );
   }
+
+  log(`Serving static files from: ${distPath}`, "static");
 
   app.use(express.static(distPath));
 
